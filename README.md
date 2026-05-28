@@ -1,10 +1,22 @@
-<div align="center">
+<p align="center">
+  <a href="https://github.com/alibaba/open-code-review">
+    <img src="imgs/logo.svg" alt="OpenCodeReview logo" width="120" height="120">
+  </a>
+</p>
+<p align="center"><b>OpenCodeReview</b></p>
+<p align="center">The open source AI code review agent.</p>
+<p align="center">
+  <a href="https://www.npmjs.com/package/@alibaba-group/open-code-review"><img alt="npm" src="https://img.shields.io/npm/v/@alibaba-group/open-code-review?style=flat-square" /></a>
+  <a href="https://github.com/alibaba/open-code-review/actions"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/alibaba/open-code-review/publish.yml?style=flat-square&branch=main" /></a>
+  <a href="https://github.com/alibaba/open-code-review/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/alibaba/open-code-review?style=flat-square" /></a>
+</p>
+<p align="center">
 
 English | [简体中文](README.zh-CN.md)
 
-</div>
+</p>
 
-# OpenCodeReview
+---
 
 AI-powered code review CLI that reads Git diffs, sends changed files to a configurable LLM via an agent with tool-use capabilities, and generates structured review comments with line-level precision.
 

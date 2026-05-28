@@ -1,10 +1,22 @@
-<div align="center">
+<p align="center">
+  <a href="https://github.com/alibaba/open-code-review">
+    <img src="imgs/logo.svg" alt="OpenCodeReview logo" width="120" height="120">
+  </a>
+</p>
+<p align="center"><b>OpenCodeReview</b></p>
+<p align="center">The open source AI code review agent.</p>
+<p align="center">
+  <a href="https://www.npmjs.com/package/@alibaba-group/open-code-review"><img alt="npm" src="https://img.shields.io/npm/v/@alibaba-group/open-code-review?style=flat-square" /></a>
+  <a href="https://github.com/alibaba/open-code-review/actions"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/alibaba/open-code-review/publish.yml?style=flat-square&branch=main" /></a>
+  <a href="https://github.com/alibaba/open-code-review/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/alibaba/open-code-review?style=flat-square" /></a>
+</p>
+<p align="center">
 
 [English](README.md) | 简体中文
 
-</div>
+</p>
 
-# OpenCodeReview
+---
 
 AI 驱动的代码审查 CLI 工具，读取 Git diff，通过具备工具调用能力的 Agent 将变更文件发送至可配置的 LLM，生成具有行级精度的结构化审查意见。
 
