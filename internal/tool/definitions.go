@@ -2,7 +2,7 @@ package tool
 
 import (
 	"context"
-	"fmt"
+	"errors"
 )
 
 // Tool represents a single review tool.
@@ -41,12 +41,6 @@ func (t Tool) IsKnown() bool {
 	return t != Unknown
 }
 
-// LookupResult holds the result of a single tool lookup.
-type LookupResult struct {
-	Result string
-	Found  bool
-}
-
 // Provider is the interface that all concrete tool implementations satisfy.
 // Each tool handles one specific capability (read file, search code, etc.).
 type Provider interface {
@@ -56,30 +50,38 @@ type Provider interface {
 	Execute(ctx context.Context, args map[string]any) (string, error)
 }
 
-// Registry maps tool aliases to their providers. Users register their own implementations here.
-type Registry map[string]Provider
-
-// NewRegistry creates an empty registry.
-func NewRegistry() Registry {
-	return make(Registry)
+// Registry holds tool providers. It is safe for concurrent reads after Freeze.
+type Registry struct {
+	providers map[string]Provider
+	frozen    bool
 }
 
-// Register adds a tool provider to the registry.
-func (r Registry) Register(p Provider) {
-	r[p.Tool().name] = p
+// NewRegistry creates an empty, mutable registry.
+func NewRegistry() *Registry {
+	return &Registry{providers: make(map[string]Provider)}
 }
 
-// Lookup finds a provider by name. Returns a zero-value LookupResult if not found.
-func (r Registry) Lookup(name string) LookupResult {
-	p, ok := r[name]
-	if !ok {
-		return LookupResult{Found: false}
+// Register adds a tool provider. Panics if the registry is frozen.
+func (r *Registry) Register(p Provider) {
+	if r.frozen {
+		panic("tool: Register called on frozen registry")
 	}
-	return LookupResult{Result: p.Tool().name, Found: true}
+	r.providers[p.Tool().name] = p
+}
+
+// Get returns the provider registered under name.
+func (r *Registry) Get(name string) (Provider, bool) {
+	p, ok := r.providers[name]
+	return p, ok
+}
+
+// Freeze prevents further mutations. Call once setup is complete.
+func (r *Registry) Freeze() {
+	r.frozen = true
 }
 
 // ErrToolNotFound is returned when a tool alias cannot be resolved.
-var ErrToolNotFound = fmt.Errorf("tool not found")
+var ErrToolNotFound = errors.New("tool not found")
 
 // NotAvailableError is the standard message returned when a tool is not registered.
 const NotAvailableMsg = "Error: Tool not found. The tool you attempted to call does not exist or is not available. Please check the tool name and try again with a valid tool."
