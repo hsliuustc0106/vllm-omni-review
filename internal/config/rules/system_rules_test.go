@@ -55,27 +55,18 @@ func TestResolve_DefaultRules(t *testing.T) {
 
 	tests := []struct {
 		path       string
-		wantSubstr string // substring that should appear in the matched rule
+		wantSubstr string
 	}{
-		{"src/main/java/com/example/foo.java", "Logic Error Detection"},
-		{"foo.java", "Logic Error Detection"},
-		{"src/main/resources/mapper/usermapper.xml", "SQL Logic Error Detection"},
-		{"src/main/resources/dao/userdao.xml", "SQL Logic Error Detection"},
-		{"pom.xml", "snapshot"},
-		{"submodule/pom.xml", "snapshot"},
-		{"src/main/resources/application.properties", "Configuration Error Detection"},
-		{"frontend/package.json", "latest"},
-		{"config/app.yaml", "yaml-key"},
-		{"deploy/values.yml", "yaml-key"},
-		{"src/components/app.tsx", "React"},
-		{"lib/utils.ts", "TypeScript"},
-		{"app.kt", "Null Safety"},
-		{"src/main/handler.cpp", "Smart Pointer"},
-		{"driver.c", "malloc"},
-		{"pages/Index.ets", "State Decorator"},
-		{"components/Button.ets", "State Decorator"},
-		{"entry/src/main/module.json5", "json-key"},
-		{"entry/oh-package.json5", "json-key"},
+		{"vllm_omni/engine/scheduler.py", "Scheduler Correctness"},
+		{"vllm_omni/model_executor/models/qwen.py", "Model Registration"},
+		{"vllm_omni/diffusion/models/z_image.py", "Latent Cache Lifecycle"},
+		{"vllm_omni/entrypoints/openai/api.py", "Input Validation"},
+		{"vllm_omni/connectors/shm.py", "Resource Management"},
+		{"vllm_omni/distributed/omni_connectors/utils.py", "Resource Management"},
+		{"vllm_omni/platforms/cuda/attention.py", "Device-Specific Code"},
+		{"vllm_omni/quantization/fp8.py", "Weight Packing Correctness"},
+		{"vllm_omni/config/stage_config.yaml", "Validation"},
+		{"vllm_omni/utils/helpers.py", "Correctness"},
 	}
 
 	for _, tt := range tests {
@@ -99,10 +90,8 @@ func TestResolve_FallbackToDefault(t *testing.T) {
 		"readme.md",
 		"docs/architecture.txt",
 		"Makefile",
-		"src/unknown.rs",
-		"internal/agent/agent.go",
-		"scripts/deploy.py",
-		"ios/ViewController.m",
+		"src/lib.rs",
+		"scripts/helper.sh",
 	}
 
 	for _, path := range paths {
@@ -119,21 +108,19 @@ func TestResolve_CustomRule_FirstMatchWins(t *testing.T) {
 	rule := &SystemRule{
 		DefaultRule: "default",
 		PathRules: []PathRule{
-			{Pattern: "**/special.java", Rule: "special-rule"},
-			{Pattern: "**/*.java", Rule: "java-rule"},
+			{Pattern: "**/engine/**/*.py", Rule: "engine-rule"},
+			{Pattern: "**/*.py", Rule: "python-rule"},
 		},
 	}
 
-	// special.java matches both patterns, but "special-rule" is first.
-	got := rule.Resolve("src/special.java")
-	if got != "special-rule" {
-		t.Errorf("expected special-rule, got %q", got)
+	got := rule.Resolve("vllm_omni/engine/scheduler.py")
+	if got != "engine-rule" {
+		t.Errorf("expected engine-rule, got %q", got)
 	}
 
-	// Other java files match the second pattern.
-	got = rule.Resolve("src/foo.java")
-	if got != "java-rule" {
-		t.Errorf("expected java-rule, got %q", got)
+	got = rule.Resolve("vllm_omni/utils/helpers.py")
+	if got != "python-rule" {
+		t.Errorf("expected python-rule, got %q", got)
 	}
 }
 
@@ -141,7 +128,7 @@ func TestResolve_CustomRule_DefaultFallback(t *testing.T) {
 	rule := &SystemRule{
 		DefaultRule: "fallback-rule",
 		PathRules: []PathRule{
-			{Pattern: "**/*.java", Rule: "java-rule"},
+			{Pattern: "**/*.py", Rule: "python-rule"},
 		},
 	}
 
@@ -155,20 +142,18 @@ func TestResolve_CaseSensitivity(t *testing.T) {
 	rule := &SystemRule{
 		DefaultRule: "default",
 		PathRules: []PathRule{
-			{Pattern: "**/*.java", Rule: "java-rule"},
+			{Pattern: "**/*.py", Rule: "python-rule"},
 		},
 	}
 
-	// agent.go calls strings.ToLower(newPath) before Resolve,
-	// so uppercase extensions should NOT match if not lowercased.
-	got := rule.Resolve("Foo.Java")
+	got := rule.Resolve("Foo.PY")
 	if got != "default" {
 		t.Errorf("expected default for uppercase extension, got %q", got)
 	}
 
-	got = rule.Resolve("foo.java")
-	if got != "java-rule" {
-		t.Errorf("expected java-rule for lowercase, got %q", got)
+	got = rule.Resolve("foo.py")
+	if got != "python-rule" {
+		t.Errorf("expected python-rule for lowercase, got %q", got)
 	}
 }
 
@@ -186,9 +171,9 @@ func TestNewResolver_DefaultOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewResolver: %v", err)
 	}
-	got := resolver.Resolve("src/main.java")
-	if !strings.Contains(got, "Logic Error Detection") {
-		t.Errorf("expected system default java rule, got %q", truncate(got, 80))
+	got := resolver.Resolve("vllm_omni/engine/scheduler.py")
+	if !strings.Contains(got, "Scheduler Correctness") {
+		t.Errorf("expected engine rule, got %q", truncate(got, 80))
 	}
 }
 
@@ -211,7 +196,7 @@ func TestNewResolver_ProjectRuleHighestPriority(t *testing.T) {
 	if err := os.MkdirAll(ocrDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	ruleJSON := `{"rules":[{"path":"force-api/**/*.java","rule":"project-java-rule"}]}`
+	ruleJSON := `{"rules":[{"path":"vllm_omni/engine/**/*.py","rule":"project-engine-rule"}]}`
 	if err := os.WriteFile(filepath.Join(ocrDir, "rule.json"), []byte(ruleJSON), 0o644); err != nil {
 		t.Fatalf("write rule.json: %v", err)
 	}
@@ -225,8 +210,8 @@ func TestNewResolver_ProjectRuleHighestPriority(t *testing.T) {
 		path string
 		want string
 	}{
-		{"force-api/src/foo.java", "project-java-rule"},
-		{"other/src/bar.java", "Logic Error Detection"},
+		{"vllm_omni/engine/scheduler.py", "project-engine-rule"},
+		{"vllm_omni/utils/helpers.py", "Correctness"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.path, func(t *testing.T) {
@@ -244,7 +229,7 @@ func TestNewResolver_ProjectRuleFallsBackToSystem(t *testing.T) {
 	if err := os.MkdirAll(ocrDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	ruleJSON := `{"rules":[{"path":"special/**/*.go","rule":"special-go-rule"}]}`
+	ruleJSON := `{"rules":[{"path":"special/**/*.py","rule":"special-py-rule"}]}`
 	if err := os.WriteFile(filepath.Join(ocrDir, "rule.json"), []byte(ruleJSON), 0o644); err != nil {
 		t.Fatalf("write rule.json: %v", err)
 	}
@@ -254,7 +239,7 @@ func TestNewResolver_ProjectRuleFallsBackToSystem(t *testing.T) {
 		t.Fatalf("NewResolver: %v", err)
 	}
 
-	got := resolver.Resolve("other/main.go")
+	got := resolver.Resolve("vllm_omni/utils/helpers.py")
 	if !strings.Contains(got, "Correctness") {
 		t.Errorf("expected system default rule, got %q", truncate(got, 80))
 	}
@@ -262,7 +247,7 @@ func TestNewResolver_ProjectRuleFallsBackToSystem(t *testing.T) {
 
 func TestNewResolver_CustomRuleOverridesDefault(t *testing.T) {
 	dir := t.TempDir()
-	customRule := `{"rules":[{"path":"**/*.go","rule":"custom-go-rule"}]}`
+	customRule := `{"rules":[{"path":"**/*.py","rule":"custom-py-rule"}]}`
 	customPath := filepath.Join(dir, "custom_rules.json")
 	if err := os.WriteFile(customPath, []byte(customRule), 0o644); err != nil {
 		t.Fatalf("write custom rule: %v", err)
@@ -273,11 +258,10 @@ func TestNewResolver_CustomRuleOverridesDefault(t *testing.T) {
 		t.Fatalf("NewResolver: %v", err)
 	}
 
-	got := resolver.Resolve("main.go")
-	if got != "custom-go-rule" {
-		t.Errorf("expected custom-go-rule, got %q", got)
+	got := resolver.Resolve("vllm_omni/engine/scheduler.py")
+	if got != "custom-py-rule" {
+		t.Errorf("expected custom-py-rule, got %q", got)
 	}
-	// --rule not matched → falls through to system default
 	got = resolver.Resolve("readme.md")
 	if !strings.Contains(got, "Correctness") {
 		t.Errorf("expected system default rule, got %q", truncate(got, 80))
@@ -285,21 +269,19 @@ func TestNewResolver_CustomRuleOverridesDefault(t *testing.T) {
 }
 
 func TestNewResolver_CustomOverridesProject(t *testing.T) {
-	// Setup --rule file (highest priority)
 	customDir := t.TempDir()
-	customRule := `{"rules":[{"path":"**/*.java","rule":"custom-java-rule"}]}`
+	customRule := `{"rules":[{"path":"**/*.py","rule":"custom-py-rule"}]}`
 	customPath := filepath.Join(customDir, "custom_rules.json")
 	if err := os.WriteFile(customPath, []byte(customRule), 0o644); err != nil {
 		t.Fatalf("write custom rule: %v", err)
 	}
 
-	// Setup project rule with narrower pattern
 	repoDir := t.TempDir()
 	ocrDir := filepath.Join(repoDir, ".opencodereview")
 	if err := os.MkdirAll(ocrDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	projRule := `{"rules":[{"path":"force-api/**/*.java","rule":"project-java-rule"},{"path":"**/*.go","rule":"project-go-rule"}]}`
+	projRule := `{"rules":[{"path":"vllm_omni/engine/**/*.py","rule":"project-engine-rule"},{"path":"**/*.go","rule":"project-go-rule"}]}`
 	if err := os.WriteFile(filepath.Join(ocrDir, "rule.json"), []byte(projRule), 0o644); err != nil {
 		t.Fatalf("write rule.json: %v", err)
 	}
@@ -313,10 +295,10 @@ func TestNewResolver_CustomOverridesProject(t *testing.T) {
 		path string
 		want string
 	}{
-		{"force-api/src/foo.java", "custom-java-rule"}, // --rule wins (highest priority)
-		{"other/src/bar.java", "custom-java-rule"},     // --rule wins
-		{"main.go", "project-go-rule"},                 // --rule misses → project wins
-		{"readme.md", "Correctness"},                   // all miss → system default
+		{"vllm_omni/engine/scheduler.py", "custom-py-rule"},
+		{"vllm_omni/utils/helpers.py", "custom-py-rule"},
+		{"main.go", "project-go-rule"},
+		{"readme.md", "Correctness"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.path, func(t *testing.T) {
@@ -353,7 +335,7 @@ func TestFileFilter_IsUserExcluded(t *testing.T) {
 		path string
 		want bool
 	}{
-		{"src/generated/api.java", true},
+		{"src/generated/api.py", true},
 		{"pkg/foo.pb.go", true},
 		{"vendor/lib/util.go", true},
 		{"vendor/lib/util.js", true},
@@ -371,17 +353,17 @@ func TestFileFilter_IsUserExcluded(t *testing.T) {
 
 func TestFileFilter_IsUserIncluded(t *testing.T) {
 	f := &FileFilter{
-		Include: []string{"src/**/*.java", "src/**/*.{kt,kts}"},
+		Include: []string{"src/**/*.py", "src/**/*.{cu,cuh}"},
 	}
 
 	tests := []struct {
 		path string
 		want bool
 	}{
-		{"src/main/foo.java", true},
-		{"src/main/bar.kt", true},
-		{"src/build.kts", true},
-		{"test/main.java", false},
+		{"src/main/foo.py", true},
+		{"src/main/bar.cu", true},
+		{"src/build.cuh", true},
+		{"test/main.py", false},
 		{"src/main/util.go", false},
 	}
 	for _, tt := range tests {
@@ -395,21 +377,21 @@ func TestFileFilter_IsUserIncluded(t *testing.T) {
 
 func TestFileFilter_IsUserIncluded_EmptyInclude(t *testing.T) {
 	f := &FileFilter{}
-	if f.IsUserIncluded("anything.java") {
+	if f.IsUserIncluded("anything.py") {
 		t.Errorf("expected false when include is empty")
 	}
 }
 
 func TestFileFilter_CaseInsensitive(t *testing.T) {
 	f := &FileFilter{
-		Include: []string{"src/**/*.java"},
+		Include: []string{"src/**/*.py"},
 		Exclude: []string{"**/generated/**"},
 	}
 
-	if !f.IsUserIncluded("SRC/Main/Foo.Java") {
+	if !f.IsUserIncluded("SRC/Main/Foo.PY") {
 		t.Errorf("expected case-insensitive include match")
 	}
-	if !f.IsUserExcluded("SRC/Generated/Api.java") {
+	if !f.IsUserExcluded("SRC/Generated/Api.py") {
 		t.Errorf("expected case-insensitive exclude match")
 	}
 }
@@ -420,7 +402,7 @@ func TestNewResolver_FileFilterMerged(t *testing.T) {
 	if err := os.MkdirAll(ocrDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	projJSON := `{"rules":[],"include":["src/**/*.java"],"exclude":["**/generated/**"]}`
+	projJSON := `{"rules":[],"include":["src/**/*.py"],"exclude":["**/generated/**"]}`
 	if err := os.WriteFile(filepath.Join(ocrDir, "rule.json"), []byte(projJSON), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
@@ -435,11 +417,11 @@ func TestNewResolver_FileFilterMerged(t *testing.T) {
 	if !filter.HasInclude() {
 		t.Error("expected HasInclude to be true")
 	}
-	if !filter.IsUserIncluded("src/main/foo.java") {
-		t.Error("expected src/main/foo.java to be included")
+	if !filter.IsUserIncluded("src/main/foo.py") {
+		t.Error("expected src/main/foo.py to be included")
 	}
-	if !filter.IsUserExcluded("src/generated/api.java") {
-		t.Error("expected src/generated/api.java to be excluded")
+	if !filter.IsUserExcluded("src/generated/api.py") {
+		t.Error("expected src/generated/api.py to be excluded")
 	}
 }
 
@@ -459,13 +441,13 @@ func TestNewResolver_FileFilterPriorityOverride(t *testing.T) {
 	if err := os.MkdirAll(ocrDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	projJSON := `{"rules":[],"include":["src/**/*.java"],"exclude":["**/gen/**"]}`
+	projJSON := `{"rules":[],"include":["src/**/*.py"],"exclude":["**/gen/**"]}`
 	if err := os.WriteFile(filepath.Join(ocrDir, "rule.json"), []byte(projJSON), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
 
 	customDir := t.TempDir()
-	customJSON := `{"rules":[],"include":["lib/**/*.kt"],"exclude":["**/tmp/**"]}`
+	customJSON := `{"rules":[],"include":["lib/**/*.py"],"exclude":["**/tmp/**"]}`
 	customPath := filepath.Join(customDir, "custom.json")
 	if err := os.WriteFile(customPath, []byte(customJSON), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
@@ -479,19 +461,16 @@ func TestNewResolver_FileFilterPriorityOverride(t *testing.T) {
 		t.Fatal("expected non-nil FileFilter")
 	}
 
-	// Custom (--rule) has highest priority, so only its patterns take effect
-	if !filter.IsUserIncluded("lib/util.kt") {
+	if !filter.IsUserIncluded("lib/util.py") {
 		t.Error("expected custom include to be active")
 	}
-	if !filter.IsUserExcluded("lib/tmp/cache.kt") {
+	if !filter.IsUserExcluded("lib/tmp/cache.py") {
 		t.Error("expected custom exclude to be active")
 	}
-
-	// Project patterns should NOT be active since custom overrides
-	if filter.IsUserIncluded("src/main/foo.java") {
+	if filter.IsUserIncluded("src/main/foo.py") {
 		t.Error("project include should not be active when custom is present")
 	}
-	if filter.IsUserExcluded("src/gen/api.java") {
+	if filter.IsUserExcluded("src/gen/api.py") {
 		t.Error("project exclude should not be active when custom is present")
 	}
 }
@@ -502,12 +481,11 @@ func TestNewResolver_FileFilterFallsToProject(t *testing.T) {
 	if err := os.MkdirAll(ocrDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	projJSON := `{"rules":[],"include":["src/**/*.java"],"exclude":["**/gen/**"]}`
+	projJSON := `{"rules":[],"include":["src/**/*.py"],"exclude":["**/gen/**"]}`
 	if err := os.WriteFile(filepath.Join(ocrDir, "rule.json"), []byte(projJSON), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
 
-	// Custom rule has no include/exclude — should fall through to project
 	customDir := t.TempDir()
 	customJSON := `{"rules":[{"path":"**/*.go","rule":"custom-go"}]}`
 	customPath := filepath.Join(customDir, "custom.json")
@@ -522,7 +500,7 @@ func TestNewResolver_FileFilterFallsToProject(t *testing.T) {
 	if filter == nil {
 		t.Fatal("expected non-nil FileFilter from project layer")
 	}
-	if !filter.IsUserIncluded("src/main/foo.java") {
+	if !filter.IsUserIncluded("src/main/foo.py") {
 		t.Error("expected project include to take effect when custom has none")
 	}
 }
@@ -554,15 +532,15 @@ func TestResolveDetail_SystemPatternMatch(t *testing.T) {
 	}
 	dr := resolver.(DetailResolver)
 
-	detail := dr.ResolveDetail("src/main/foo.java")
+	detail := dr.ResolveDetail("vllm_omni/engine/scheduler.py")
 	if detail.Source != "system" {
 		t.Errorf("expected source 'system', got %q", detail.Source)
 	}
-	if detail.Pattern != "**/*.java" {
-		t.Errorf("expected pattern '**/*.java', got %q", detail.Pattern)
+	if detail.Pattern != "**/engine/**/*.py" {
+		t.Errorf("expected pattern '**/engine/**/*.py', got %q", detail.Pattern)
 	}
-	if !strings.Contains(detail.Rule, "Logic Error Detection") {
-		t.Errorf("expected java rule, got %q", truncate(detail.Rule, 80))
+	if !strings.Contains(detail.Rule, "Scheduler Correctness") {
+		t.Errorf("expected engine rule, got %q", truncate(detail.Rule, 80))
 	}
 }
 
@@ -573,7 +551,7 @@ func TestResolveDetail_ProjectOverridesSystem(t *testing.T) {
 	if err := os.MkdirAll(ocrDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	ruleJSON := `{"rules":[{"path":"src/**/*.java","rule":"project-java-rule"}]}`
+	ruleJSON := `{"rules":[{"path":"vllm_omni/engine/**/*.py","rule":"project-engine-rule"}]}`
 	if err := os.WriteFile(filepath.Join(ocrDir, "rule.json"), []byte(ruleJSON), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
@@ -584,39 +562,36 @@ func TestResolveDetail_ProjectOverridesSystem(t *testing.T) {
 	}
 	dr := resolver.(DetailResolver)
 
-	detail := dr.ResolveDetail("src/main/foo.java")
+	detail := dr.ResolveDetail("vllm_omni/engine/scheduler.py")
 	if detail.Source != "project" {
 		t.Errorf("expected source 'project', got %q", detail.Source)
 	}
-	if detail.Pattern != "src/**/*.java" {
-		t.Errorf("expected pattern 'src/**/*.java', got %q", detail.Pattern)
+	if detail.Pattern != "vllm_omni/engine/**/*.py" {
+		t.Errorf("expected pattern, got %q", detail.Pattern)
 	}
-	if detail.Rule != "project-java-rule" {
-		t.Errorf("expected 'project-java-rule', got %q", detail.Rule)
+	if detail.Rule != "project-engine-rule" {
+		t.Errorf("expected 'project-engine-rule', got %q", detail.Rule)
 	}
 
-	// Unmatched path falls to system
-	detail = dr.ResolveDetail("other/bar.java")
+	detail = dr.ResolveDetail("vllm_omni/utils/helpers.py")
 	if detail.Source != "system" {
 		t.Errorf("expected source 'system', got %q", detail.Source)
 	}
 }
 
 func TestResolveDetail_CustomOverridesAll(t *testing.T) {
-	// Project rule
 	repoDir := t.TempDir()
 	ocrDir := filepath.Join(repoDir, ".opencodereview")
 	if err := os.MkdirAll(ocrDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	projJSON := `{"rules":[{"path":"**/*.java","rule":"project-java-rule"}]}`
+	projJSON := `{"rules":[{"path":"**/*.py","rule":"project-py-rule"}]}`
 	if err := os.WriteFile(filepath.Join(ocrDir, "rule.json"), []byte(projJSON), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
 
-	// Custom rule (highest priority)
 	customDir := t.TempDir()
-	customJSON := `{"rules":[{"path":"**/*.java","rule":"custom-java-rule"}]}`
+	customJSON := `{"rules":[{"path":"**/*.py","rule":"custom-py-rule"}]}`
 	customPath := filepath.Join(customDir, "custom.json")
 	if err := os.WriteFile(customPath, []byte(customJSON), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
@@ -628,12 +603,12 @@ func TestResolveDetail_CustomOverridesAll(t *testing.T) {
 	}
 	dr := resolver.(DetailResolver)
 
-	detail := dr.ResolveDetail("src/foo.java")
+	detail := dr.ResolveDetail("vllm_omni/engine/scheduler.py")
 	if detail.Source != "custom" {
 		t.Errorf("expected source 'custom', got %q", detail.Source)
 	}
-	if detail.Rule != "custom-java-rule" {
-		t.Errorf("expected 'custom-java-rule', got %q", detail.Rule)
+	if detail.Rule != "custom-py-rule" {
+		t.Errorf("expected 'custom-py-rule', got %q", detail.Rule)
 	}
 }
 
@@ -643,7 +618,7 @@ func TestNewResolver_BraceExpansionInProjectRule(t *testing.T) {
 	if err := os.MkdirAll(ocrDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	ruleJSON := `{"rules":[{"path":"src/**/*.{java,kt}","rule":"jvm-rule"}]}`
+	ruleJSON := `{"rules":[{"path":"src/**/*.{py,pyi}","rule":"py-rule"}]}`
 	if err := os.WriteFile(filepath.Join(ocrDir, "rule.json"), []byte(ruleJSON), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
@@ -657,8 +632,8 @@ func TestNewResolver_BraceExpansionInProjectRule(t *testing.T) {
 		path string
 		want string
 	}{
-		{"src/main/foo.java", "jvm-rule"},
-		{"src/main/bar.kt", "jvm-rule"},
+		{"src/main/foo.py", "py-rule"},
+		{"src/main/bar.pyi", "py-rule"},
 		{"src/main/baz.go", "Correctness"},
 	}
 	for _, tt := range tests {

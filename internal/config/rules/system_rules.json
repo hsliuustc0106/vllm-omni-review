@@ -1,18 +1,15 @@
 {
-  "default_rule": "default.md",
+  "default_rule": "python_ml.md",
   "path_rule_map": {
-    "**/*.properties": "properties.md",
-    "**/*{mapper,dao}*.xml": "mapper_dao_xml.md",
-    "**/pom.xml": "pom_xml.md",
-    "**/build.gradle": "build_gradle.md",
-    "**/package.json": "package_json.md",
-    "**/*.{json,json5}": "json.md",
-    "**/*.{yaml,yml}": "yaml.md",
-    "**/*.java": "java.md",
-    "**/*.ets": "arkts.md",
-    "**/*.{ts,js,tsx,jsx}": "ts_js_tsx_jsx.md",
-    "**/*.{kt}": "kotlin.md",
-    "**/*.{cpp,cc,hpp}": "cpp.md",
-    "**/*.c": "c.md"
+    "**/engine/**/*.py": "engine.md",
+    "**/model_executor/**/*.py": "models.md",
+    "**/diffusion/**/*.py": "diffusion.md",
+    "**/entrypoints/**/*.py": "entrypoints.md",
+    "**/connectors/**/*.py": "connectors.md",
+    "**/distributed/omni_connectors/**/*.py": "connectors.md",
+    "**/platforms/**/*.py": "platforms.md",
+    "**/quantization/**/*.py": "quantization.md",
+    "**/config/**/*.{yaml,yml}": "config.md",
+    "**/*.py": "python_ml.md"
   }
 }
