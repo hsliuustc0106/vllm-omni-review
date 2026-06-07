@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/open-code-review/open-code-review/internal/analysis"
 	"github.com/open-code-review/open-code-review/internal/config/rules"
 	"github.com/open-code-review/open-code-review/internal/config/template"
 	"github.com/open-code-review/open-code-review/internal/config/toolsconfig"
@@ -515,7 +516,10 @@ func (a *Agent) executeSubtask(ctx context.Context, d model.Diff) error {
 
 	rule := a.resolveSystemRule(strings.ToLower(newPath))
 
-	threshold := a.args.Template.PlanModeLineThreshold
+		// Run static analysis to produce attention hints for the LLM.
+		analysisHints := analysis.AnalyzeAll(d.Diff)
+
+		threshold := a.args.Template.PlanModeLineThreshold
 	changeLines := d.Insertions + d.Deletions
 
 	// Phase 1: Plan (skip when changes are below threshold)
@@ -552,6 +556,7 @@ func (a *Agent) executeSubtask(ctx context.Context, d model.Diff) error {
 		content = strings.ReplaceAll(content, "{{change_files}}", changeFilesExcludingCurrent)
 		content = strings.ReplaceAll(content, "{{diff}}", d.Diff)
 		content = strings.ReplaceAll(content, "{{requirement_background}}", a.args.Background)
+			content = strings.ReplaceAll(content, "{{analysis_hints}}", analysisHints)
 		// Always substitute the {{plan_guidance}} token so the literal placeholder
 		// never leaks into the rendered prompt. When the plan phase produced no
 		// output, strip the surrounding "### Review Plan (Optional)\n…\n\n" wrapper
