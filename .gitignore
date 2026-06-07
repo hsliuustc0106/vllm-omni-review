@@ -17,11 +17,10 @@ CHANGELOG.md
 vendor/
 temp/
 
-# Ignore downloaded Go binary, but keep JS entry point
-!bin/ocr.js
-bin/opencodereview
+# Ignore downloaded Go binary
+bin/vomni-review
 
-/opencodereview
+/vomni-review
 
 /node_modules
 

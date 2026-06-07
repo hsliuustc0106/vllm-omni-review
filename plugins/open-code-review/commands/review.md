@@ -1,24 +1,24 @@
 ---
-description: Run OpenCodeReview (OCR) to review code changes and autonomously apply fixes.
+description: Run vomni-review to review code changes and autonomously apply fixes.
 ---
 
-Invoke the professional code review Agent CLI tool OpenCodeReview (OCR) to review current code changes, and let the Agent autonomously decide whether to apply fixes.
+Invoke the code review engine vomni-review to review current code changes, and let the Agent autonomously decide whether to apply fixes.
 
 ## Workflow
 
 ### Step 1: Run Code Review
 
-Run the OCR command:
+Run the vomni-review command:
 
 ```bash
-ocr review --audience agent [user-args]
+vomni-review review --audience agent [user-args]
 ```
 - Default (no user arguments): reviews staged, unstaged, and untracked changes (workspace mode).
 - If the user provides `--commit` or `--c`: pass through as-is.
 - If the user provides `--from` and `--to`: pass through as-is.
 - (Optional) Provide `--background "requirement context"` to review whether the requirements are correctly implemented.
 - Capture full stdout. Set a 5-minute timeout.
-- If the `ocr` command is not found, install it by running `npm i -g @alibaba-group/open-code-review`.
+- If the `vomni-review` command is not found, build it from source with `make build`.
 
 ### Step 2: Filter and Evaluate
 

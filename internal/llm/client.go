@@ -21,7 +21,7 @@ import (
 var AppVersion = "dev"
 
 func userAgent(provider string) string {
-	ua := "open-code-review/" + AppVersion
+	ua := "vomni-review/" + AppVersion
 	if provider != "" {
 		ua += " | " + provider
 	}

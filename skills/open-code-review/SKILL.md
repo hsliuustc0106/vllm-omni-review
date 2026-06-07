@@ -1,27 +1,25 @@
 ---
-name: open-code-review
+name: vomni-review
 description: >
-  Performs AI-powered code review on Git changes using the `ocr` CLI from
-  alibaba/open-code-review. Use when the user asks to review code, review
-  a pull request, review staged/unstaged changes, review a commit, or
-  compare branches for code quality issues. Produces line-level review
-  comments and can automatically apply fixes when requested. With appropriate
-  review rules, can detect various types of issues including bugs, security
-  vulnerabilities, performance problems, and code quality concerns.
+  Performs AI-powered code review on Git changes using the vomni-review CLI.
+  Use when the user asks to review code, review a pull request, review
+  staged/unstaged changes, review a commit, or compare branches for code
+  quality issues. Produces line-level review comments and can automatically
+  apply fixes when requested. With appropriate review rules, can detect
+  various types of issues including bugs, security vulnerabilities,
+  performance problems, and code quality concerns.
 license: Apache-2.0
 compatibility: >
-  Requires the `ocr` CLI installed (via `npm install -g
-  @alibaba-group/open-code-review` or GitHub release binary). Requires a
-  configured LLM (Anthropic or OpenAI-compatible) before first run.
+  Requires the vomni-review CLI (built from source via `make build`).
+  Requires a configured LLM (Anthropic or OpenAI-compatible) before first run.
 metadata:
-  author: alibaba
-  homepage: https://github.com/alibaba/open-code-review
+  author: hsliu
   version: "1.0.0"
 ---
 
-# Open Code Review
+# vomni-review
 
-A skill for invoking [open-code-review](https://github.com/alibaba/open-code-review) (`ocr`) — an open-source AI code review CLI that reads Git diffs and generates structured, line-level review comments.
+A skill for invoking vomni-review — a domain-native code review CLI that reads Git diffs and generates structured, line-level review comments.
 
 ## Prerequisites check
 
@@ -29,19 +27,19 @@ Before starting a review, verify the environment:
 
 ```bash
 # 1. Check the CLI is installed
-which ocr || echo "NOT INSTALLED"
+which vomni-review || echo "NOT INSTALLED"
 
 # 2. Verify LLM connectivity
-ocr llm test
+vomni-review llm test
 ```
 
-If `ocr` is not installed, install it first:
+If `vomni-review` is not installed, build it first:
 
 ```bash
-npm install -g @alibaba-group/open-code-review
+make build
 ```
 
-If `ocr llm test` fails, the user must configure an LLM. Guide them with one of these options:
+If `vomni-review llm test` fails, the user must configure an LLM. Guide them with one of these options:
 
 **Option A — Environment variables (highest priority, recommended for CI):**
 
@@ -71,10 +69,10 @@ Analyze the review target (commits, branch, or changes) to extract concise busin
 
 ### Step 2: Run Code Review
 
-Run the OCR command with appropriate flags. **Always pass business context via `--background`** when available:
+Run the vomni-review command with appropriate flags. **Always pass business context via `--background`** when available:
 
 ```bash
-ocr review --audience agent --background "business context here" [user-args]
+vomni-review review --audience agent --background "business context here" [user-args]
 ```
 
 **Argument handling:**
@@ -86,16 +84,16 @@ ocr review --audience agent --background "business context here" [user-args]
 - **Timeout**: default timeout is 10 minutes per file; adjust with `--timeout <minutes>`
 - **Concurrency**: default concurrency is 8 file workers; reduce with `--concurrency <n>` if rate limits are hit
 - **Preview mode**: use `--preview` or `-p` to preview which files will be reviewed without running the LLM
-- **Installation**: if `ocr` command is not found, install it by running `npm i -g @alibaba-group/open-code-review`
+- **Installation**: if `vomni-review` command is not found, build it with `make build`
 
 **Common invocation patterns:**
 
 | User says | Command to run |
 |-----------|---------------|
-| "review my changes" / "review the working copy" | `ocr review --audience agent -b "context"` |
-| "review this PR" / "review feature branch" | `ocr review --audience agent -b "context" --from main --to <branch>` |
-| "review commit abc123" | `ocr review --audience agent -b "context" --commit abc123` |
-| "what would be reviewed?" (dry-run) | `ocr review --preview` |
+| "review my changes" / "review the working copy" | `vomni-review review --audience agent -b "context"` |
+| "review this PR" / "review feature branch" | `vomni-review review --audience agent -b "context" --from main --to <branch>` |
+| "review commit abc123" | `vomni-review review --audience agent -b "context" --commit abc123` |
+| "what would be reviewed?" (dry-run) | `vomni-review review --preview` |
 
 **Output mode:**
 
@@ -174,7 +172,7 @@ When `start_line` and `end_line` are both `0`, the comment failed to locate the 
 
 ## Custom Review Rules
 
-If the user wants project-specific rules, OCR resolves them in this priority order:
+If the user wants project-specific rules, vomni-review resolves them in this priority order:
 
 1. `--rule <path>` flag (highest)
 2. `<repo>/.opencodereview/rule.json`
@@ -187,12 +185,12 @@ Rule file format:
 {
   "rules": [
     {
-      "path": "**/*.java",
-      "rule": "All new methods must validate required parameters for null"
+      "path": "**/engine/**/*.py",
+      "rule": "Check scheduler changes for deadlock risks and state management correctness"
     },
     {
-      "path": "**/*mapper*.xml",
-      "rule": "Check SQL for injection risks and missing closing tags"
+      "path": "**/connectors/**/*.py",
+      "rule": "Verify resource cleanup in all error paths; use context managers"
     }
   ]
 }
@@ -201,14 +199,14 @@ Rule file format:
 To preview which rule applies to a file before reviewing:
 
 ```bash
-ocr rules check src/main/java/com/example/Foo.java
+vomni-review rules check vllm_omni/engine/scheduler.py
 ```
 
 ## Gotchas
 
-- **LLM must be configured first** — `ocr review` will fail loudly if no LLM is reachable. Always run `ocr llm test` before the first review.
-- **Working directory matters** — `ocr review` operates on the Git repo at the current directory. Use `--repo /path/to/repo` to run from elsewhere.
-- **Untracked files are reviewed in workspace mode** — running bare `ocr review` includes staged, unstaged, *and* untracked changes. Stage selectively if you want narrower scope.
+- **LLM must be configured first** — `vomni-review review` will fail loudly if no LLM is reachable. Always run `vomni-review llm test` before the first review.
+- **Working directory matters** — `vomni-review review` operates on the Git repo at the current directory. Use `--repo /path/to/repo` to run from elsewhere.
+- **Untracked files are reviewed in workspace mode** — running bare `vomni-review review` includes staged, unstaged, *and* untracked changes. Stage selectively if you want narrower scope.
 - **Large diffs may hit token limits** — files with very large diffs may be truncated. The default `MAX_TOKENS` is 58888 per request.
 - **Plan phase triggers at 50 lines** — diffs exceeding 50 changed lines run an extra risk-analysis phase before main review. This adds latency but improves quality.
 - **Don't pass `--audience human`** — it streams progress UI that pollutes output. Always use `--audience agent`.
@@ -226,6 +224,5 @@ If errors occurred, check the stderr warnings for details about which files fail
 
 ## References
 
-- Full docs: https://github.com/alibaba/open-code-review
-- NPM package: https://www.npmjs.com/package/@alibaba-group/open-code-review
-- Issue tracker: https://github.com/alibaba/open-code-review/issues
+- vllm-omni: https://github.com/vllm-project/vllm-omni
+- vllm-omni-review skill: Claude Code skill for PR orchestration

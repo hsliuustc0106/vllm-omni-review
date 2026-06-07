@@ -1,7 +1,7 @@
 {
-  "name": "open-code-review-landing",
+  "name": "vomni-review-viewer",
   "version": "1.0.0",
-  "description": "Landing page for Open Code Review",
+  "description": "Review session viewer for vomni-review",
   "scripts": {
     "dev": "webpack serve",
     "build": "NODE_ENV=production webpack --mode production",

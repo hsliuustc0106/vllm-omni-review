@@ -1,6 +1,6 @@
 {
-    "name": "open-code-review",
+    "name": "vomni-review",
     "commands": "./commands",
-    "description": "Perform AI code review on Git diffs — supports workspace changes, branch ranges, and single commits with concurrent per-file analysis, codebase search, and deep context-aware review.",
+    "description": "Domain-native code review for vllm-omni PRs. Detects tensor shape issues, CUDA patterns, connector lifecycle bugs, and more via static analysis + LLM review.",
     "version": "1.0.0"
 }

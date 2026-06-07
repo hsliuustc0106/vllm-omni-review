@@ -19,7 +19,7 @@ func runRules(args []string) error {
 		printRulesUsage()
 		return nil
 	default:
-		return fmt.Errorf("unknown rules sub-command: %s\nRun 'ocr rules -h' for usage", args[0])
+		return fmt.Errorf("unknown rules sub-command: %s\nRun 'vomni-review rules -h' for usage", args[0])
 	}
 }
 
@@ -80,17 +80,17 @@ func runRulesCheck(args []string) error {
 
 func printRulesUsage() {
 	fmt.Println(`Usage:
-  ocr rules <sub-command>
+  vomni-review rules <sub-command>
 
 Sub-commands:
   check <file>   Show which review rule applies to a given file path
 
-Use "ocr rules check -h" for more information.`)
+Use "vomni-review rules check -h" for more information.`)
 }
 
 func printRulesCheckUsage() {
 	fmt.Println(`Usage:
-  ocr rules check [flags] <file-path>
+  vomni-review rules check [flags] <file-path>
 
 Show which review rule applies to the given file path, including its source layer and matched pattern.
 
@@ -99,6 +99,6 @@ Flags:
   --rule    Path to a custom rule JSON file
 
 Examples:
-  ocr rules check src/main/java/com/example/Foo.java
-  ocr rules check --rule custom.json src/main/resources/mapper/UserMapper.xml`)
+  vomni-review rules check vllm_omni/engine/scheduler.py
+  vomni-review rules check --rule custom.json vllm_omni/connectors/shm.py`)
 }

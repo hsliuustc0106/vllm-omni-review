@@ -13,7 +13,7 @@ var (
 )
 
 func printVersion() {
-	fmt.Printf("open-code-review %s", Version)
+	fmt.Printf("vomni-review %s", Version)
 	if GitCommit != "" {
 		fmt.Printf(" (%s)", GitCommit)
 	}
@@ -21,5 +21,4 @@ func printVersion() {
 	if BuildDate != "" {
 		fmt.Printf("built at: %s\n", BuildDate)
 	}
-	fmt.Println("https://github.com/alibaba/open-code-review")
 }

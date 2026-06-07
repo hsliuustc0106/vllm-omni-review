@@ -118,7 +118,7 @@ func New(repoDir, gitBranch, model string, opts SessionOptions) *SessionHistory 
 
 	p, err := newJSONLWriter(sessionID, repoDir, gitBranch, model, opts)
 	if err != nil {
-		fmt.Printf("[ocr session] warning: failed to create session writer: %v\n", err)
+		fmt.Printf("[vomni session] warning: failed to create session writer: %v\n", err)
 	} else {
 		sh.persist = p
 		p.WriteSessionStart(sh.StartTime)

@@ -1,5 +1,5 @@
-// OpenCodeReview is an AI-powered code review CLI tool.
-// It reads git diffs, sends them to a configurable LLM service, and generates review comments.
+// vomni-review is a domain-native code review engine for vllm-omni PRs.
+// It reads git diffs, runs static analysis, and uses an LLM agent to generate structured review comments.
 package main
 
 import (
@@ -63,10 +63,10 @@ func dispatch() error {
 }
 
 func printTopLevelUsage() {
-	fmt.Println(`OpenCodeReview - AI-Powered Code Review CLI
+	fmt.Println(`vomni-review - Domain-native code review engine for vllm-omni
 
 Usage:
-  ocr [command]
+  vomni-review [command]
 
 Commands:
   review, r    Start a code review
@@ -77,16 +77,14 @@ Commands:
   version      Show version information
 
 Examples:
-  ocr review --from master --to dev        Review diff range
-  ocr review --commit abc123               Review a single commit
-  ocr config set llm.model opus-4-6        Set a config value
-  ocr llm test                             Test LLM connectivity
-  ocr version                              Show version info
+  vomni-review review --from main --to feature    Review diff range
+  vomni-review review --commit abc123             Review a single commit
+  vomni-review config set llm.model claude-opus-4-6  Set a config value
+  vomni-review llm test                           Test LLM connectivity
+  vomni-review version                            Show version info
 
-Use "ocr review -h" for more information about review.
-Use "ocr rules -h" for more information about rules.
-Use "ocr config" for more information about config.
-Use "ocr llm" for more information about LLM utilities.
-
-GitHub: https://github.com/alibaba/open-code-review`)
+Use "vomni-review review -h" for more information about review.
+Use "vomni-review rules -h" for more information about rules.
+Use "vomni-review config" for more information about config.
+Use "vomni-review llm" for more information about LLM utilities.`)
 }

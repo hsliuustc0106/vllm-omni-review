@@ -51,9 +51,9 @@ func isLoopbackHost(host string) bool {
 // buildAllowedHosts returns the default-deny allowlist used by the host guard.
 // The set always includes the standard loopback names. If bindHost is a
 // concrete (non-wildcard) hostname or IP, it is also included so a user who
-// runs `ocr viewer --addr 192.168.1.10:5483` can still reach the UI at that
+// runs `vomni-review viewer --addr 192.168.1.10:5483` can still reach the UI at that
 // address. Wildcard binds (empty, 0.0.0.0, ::) are NOT auto-added — operators
-// who bind on a public interface must explicitly set OCR_VIEWER_ALLOWED_HOSTS,
+// who bind on a public interface must explicitly set VOMNI_VIEWER_ALLOWED_HOSTS,
 // which forces them to acknowledge the exposure.
 func buildAllowedHosts(bindHost string, envVal string) map[string]struct{} {
 	allowed := map[string]struct{}{

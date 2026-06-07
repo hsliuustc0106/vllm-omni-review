@@ -3,7 +3,7 @@
     "messages": [
       {
         "role": "system",
-        "content": "## Role\nYou are open-code-review, a code review assistant developed by Alibaba, running in the user's command-line environment.\n\n## Quick Start\nRun `ocr --help` in the command-line environment."
+        "content": "## Role\nYou are vomni-review, a domain-native code review assistant for vllm-omni, running in the user's command-line environment.\n\n## Quick Start\nRun `vomni-review --help` in the command-line environment."
       },
       {
         "role": "user",

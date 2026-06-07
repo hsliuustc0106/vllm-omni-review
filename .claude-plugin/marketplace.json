@@ -1,14 +1,14 @@
 {
-  "name": "open-code-review",
+  "name": "vomni-review",
   "owner": {
-    "name": "alibaba"
+    "name": "hsliu"
   },
-  "description": "AI-powered code review agent that reads Git diffs, analyzes changed files with LLM tool-use capabilities, and generates structured line-level review comments with cross-referential context awareness.",
+  "description": "Domain-native code review engine for vllm-omni PRs. Combines deterministic file-by-file coverage with static analysis and targeted review rules for multimodal model code.",
   "plugins": [
     {
-      "name": "open-code-review",
+      "name": "vomni-review",
       "source": "./plugins/open-code-review",
-      "description": "Perform AI code review on Git diffs — supports workspace changes, branch ranges, and single commits with concurrent per-file analysis, codebase search, and deep context-aware review.",
+      "description": "Review vllm-omni PRs with domain-specific static analysis and per-file LLM review. Detects tensor shape issues, CUDA patterns, connector lifecycle bugs, and more.",
       "version": "1.0.0",
       "license": "Apache-2.0"
     }

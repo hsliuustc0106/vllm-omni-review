@@ -114,7 +114,7 @@ func (jw *jsonlWriter) open() error {
 func (jw *jsonlWriter) writeRecordLocked(rec map[string]any) {
 	data, err := json.Marshal(rec)
 	if err != nil {
-		fmt.Printf("[ocr session] failed to marshal record: %v\n", err)
+		fmt.Printf("[vomni session] failed to marshal record: %v\n", err)
 		return
 	}
 	jw.writer.Write(data)

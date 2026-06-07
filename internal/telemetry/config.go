@@ -1,4 +1,4 @@
-// Package telemetry provides OpenTelemetry-based observability for OpenCodeReview CLI.
+// Package telemetry provides OpenTelemetry-based observability for vomni-review CLI.
 // It supports console output (for personal use) and OTLP export (for system integration).
 package telemetry
 
@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	defaultServiceName    = "open-code-review"
+	defaultServiceName    = "vomni-review"
 	defaultOTLPEndpoint   = ""
 	defaultExporter       = "console"
 	defaultContentLogging = false
